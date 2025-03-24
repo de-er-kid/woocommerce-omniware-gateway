@@ -198,11 +198,39 @@ class WC_Omniware_Gateway extends WC_Payment_Gateway
             wp_die('Order not found', 'OmniWare', array('response' => 500));
         }
 
-        // Verify the response hash here
-        // Add your response handling logic
+        // Verify payment status from OmniWare response
+        if (isset($response_data['status'])) {
+            switch ($response_data['status']) {
+                case 'SUCCESS':
+                    $order->update_status('processing', 'OmniWare payment completed successfully');
+                    break;
 
-        $order->payment_complete();
-        wp_redirect($this->get_return_url($order));
+                case 'CANCELLED':
+                    $order->update_status('failed', 'Payment was cancelled by the customer');
+                    wc_add_notice(__('Payment cancelled.', 'wc-omniware-gateway'), 'error');
+                    break;
+
+                case 'FAILED':
+                    $order->update_status('failed', 'Payment failed at OmniWare gateway');
+                    wc_add_notice(__('Payment failed.', 'wc-omniware-gateway'), 'error');
+                    break;
+
+                default:
+                    $order->update_status('failed', 'Payment status: ' . $response_data['status']);
+                    wc_add_notice(__('Payment failed.', 'wc-omniware-gateway'), 'error');
+                    break;
+            }
+        } else {
+            $order->update_status('failed', 'Invalid payment response received');
+            wc_add_notice(__('Invalid payment response.', 'wc-omniware-gateway'), 'error');
+        }
+
+        // Redirect based on payment status
+        if ($order->has_status('processing')) {
+            wp_redirect($this->get_return_url($order));
+        } else {
+            wp_redirect(wc_get_checkout_url());
+        }
         exit;
     }
 

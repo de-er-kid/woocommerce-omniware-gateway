@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce OmniWare Gateway
 Plugin URI: https://github.com/de-er-kid/woocommerce-omniware-gateway
 Description: OmniWare Payment Gateway for WooCommerce
-Version: 1.0.0
+Version: 1.0.1
 Author: Sinan
 Author URI: https://github.com/de-er-kid
 */
